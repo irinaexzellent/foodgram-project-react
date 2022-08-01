@@ -42,7 +42,7 @@ class TagSerializer(serializers.ModelSerializer):
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
     """
     Сериализатор добавления ингредиентов
-    применяетс в RecipeWriteSerializer для записи рецептов
+    применяется в RecipeWriteSerializer для записи рецептов
     """
     class Meta:
         model = CountOfIngredient
@@ -66,7 +66,7 @@ class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientReadSerializer(serializers.ModelSerializer):
     """
-    Сериализатор для получения данных об ингредиентах, применияемых в рецепте
+    Сериализатор для получения данных об ингредиентах, применяемых в рецепте
     """
     id = serializers.IntegerField(source='ingredient.id')
     name = serializers.CharField(source='ingredient.name')
@@ -174,3 +174,4 @@ class RecipeFollowSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'name', 'image', 'cooking_time',
         )
+

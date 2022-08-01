@@ -77,13 +77,11 @@ class CountOfIngredient(models.Model):
         verbose_name='Ингредиент',
     )
     amount = models.PositiveIntegerField(
-        'Количество',
-        #validators=(MinValueValidator(
-        #    INGREDIENT_MIN_AMOUNT,
-        #    message=INGREDIENT_MIN_AMOUNT_ERROR.format(
-        #        min_value=INGREDIENT_MIN_AMOUNT
-        #    )
-        #),
+        'Количество', validators=(MinValueValidator(
+            INGREDIENT_MIN_AMOUNT,
+            message=INGREDIENT_MIN_AMOUNT_ERROR.format(
+                min_value=INGREDIENT_MIN_AMOUNT)),
+        )
     )
 
     class Meta:

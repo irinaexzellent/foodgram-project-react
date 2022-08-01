@@ -2,8 +2,9 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
-from users.models import Follow, User
 from api.models import Recipe
+from users.models import Follow, User
+
 
 class UserCreateSerializer(UserCreateSerializer):
     """Сериализатор для регистрации пользователей """
@@ -78,18 +79,24 @@ class FollowSerializer(UserDetailSerializer):
                 'Вы не можете подписаться на себя!')
         return data
 
+
 class RecipeFollowSerializer(serializers.ModelSerializer):
+    """
+    Сериализатор для обработки данных о рецепете
+    применяется в FollowListSerializer
+    """
     class Meta:
         model = Recipe
         fields = (
             'id', 'name', 'image', 'cooking_time',
         )
 
+
 class FollowListSerializer(serializers.ModelSerializer):
     """
-    Сериалайзер для получения данных о пользователей,
+    Сериалайзер для обработки данных о пользователях,
     на которых подписан текущий пользователь
-    В выдачу добавлены рецепты т общее количество рецептов пользователей
+    В выдачу добавлены рецепты и общее количество рецептов пользователей
     """
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
@@ -105,7 +112,7 @@ class FollowListSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         return Follow.objects.filter(user=request.user, author=obj).exists()
-    
+
     def get_recipes(self, obj):
         recipes = obj.recipes.all()
         return RecipeFollowSerializer(recipes, many=True).data

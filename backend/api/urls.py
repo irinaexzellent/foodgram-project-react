@@ -7,18 +7,18 @@ from rest_framework.routers import SimpleRouter
 
 from api.views import (
     APIDownloadShoppingCart,
+    APIFavorite,
     APIIngredients,
     APIIngredientsDetail,
-    FavoriteViewSet,
+    APIShoppingCart,
     RecipeViewSet,
-    ShoppingCartViewSet,
     TagViewSet,
 )
 from users.views import (
     APIUser,
     APIUserDetail,
     FollowListAPIView,
-    FollowViewSet,
+    APIFollow,
     TokenCreateWithCheckBlockStatusView
 )
 
@@ -44,17 +44,17 @@ urlpatterns = [
     ),
     path(
         'users/<int:user_id>/subscribe/',
-        FollowViewSet.as_view(),
+        APIFollow.as_view(),
         name='subscribe'
     ),
     path(
         'recipes/<int:pk>/favorite/',
-        FavoriteViewSet.as_view(),
+        APIFavorite.as_view(),
         name='favorite'
     ),
     path(
         'recipes/<int:pk>/shopping_cart/',
-        ShoppingCartViewSet.as_view(),
+        APIShoppingCart.as_view(),
         name='shopping_cart'
     ),
     path(

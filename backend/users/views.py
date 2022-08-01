@@ -1,5 +1,5 @@
 from djoser.views import TokenCreateView
-from rest_framework import permissions, status, viewsets
+from rest_framework import status
 from rest_framework.generics import get_object_or_404, ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
@@ -11,7 +11,7 @@ from users.models import Follow, User
 from users.serializers import (FollowSerializer, FollowListSerializer,
                                UserCreateSerializer,
                                UserDetailSerializer)
-from api.serializers import RecipeFollowSerializer
+
 
 USER_BLOCKED = 'Данный аккаунт временно заблокирован!'
 
@@ -100,7 +100,7 @@ class APIUserDetail(APIView):
             return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-class FollowViewSet(APIView):
+class APIFollow(APIView):
     """
     APIView для добавления и удаления подписки на автора
     Доступно аутентифицированному поользователю
@@ -156,15 +156,6 @@ class FollowViewSet(APIView):
         )
 
 
-#class SubscriptionViewSet(viewsets.ModelViewSet):
-#    permission_classes = [permissions.IsAuthenticated]
-#
-#    def get_queryset(self):
-#        user = self.request.user
-#       #return Follow.objects.filter(user=user).select_related('user')
-#       return User.objects.filter(following__user=user)
-
-
 class FollowListAPIView(ListAPIView):
     """
     ListAPIView для обработки эндпоинта /api/users/subscriptions/
@@ -175,7 +166,7 @@ class FollowListAPIView(ListAPIView):
     def get(self, request):
         """
         Возвращает пользователей, на которых подписан текущий пользователь
-        В выдаче добаляются рецепты
+        В выдачу добаляются рецепты
         """
         user = request.user
         queryset = User.objects.filter(following__user=user)

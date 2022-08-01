@@ -167,7 +167,7 @@ class RecipeViewSet(ModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class FavoriteViewSet(APIView):
+class APIFavorite(APIView):
     """
     APIView для добавления и удаления рецепта в избранное
     """
@@ -209,7 +209,7 @@ class FavoriteViewSet(APIView):
         )
 
 
-class ShoppingCartViewSet(APIView):
+class APIShoppingCart(APIView):
     """
     APIView для добавления и удаления рецепта в список покупок
     """
@@ -266,6 +266,7 @@ class APIDownloadShoppingCart(APIView):
             for ingredient in ingredients
         ])
         filename = 'shopping_cart.txt'
-        response = HttpResponse(shopping_cart, content_type='text/plain')
+        response = HttpResponse(shopping_cart)
+        response['Content-Type'] = 'text/plain'
         response['Content-Disposition'] = f'attachment; filename={filename}'
         return response
