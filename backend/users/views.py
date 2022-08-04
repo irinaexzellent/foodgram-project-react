@@ -1,7 +1,6 @@
 from djoser.views import TokenCreateView
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.generics import get_object_or_404, ListAPIView
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
@@ -26,61 +25,13 @@ class TokenCreateWithCheckBlockStatusView(TokenCreateView):
         return super()._action(serializer)
 
 
-class APIUser(APIView, PageNumberPagination):
+class UserViewSet(viewsets.ModelViewSet):
     """
     View-класс для обработки эндпоинта /users/
     """
     queryset = User.objects.all()
     serializer_class = UserCreateSerializer
-    pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
-
-    def get(self, request, ):
-        """
-        Метод возвращает информацию о всех пользователях
-        Доступно всем пользователям
-        """
-        page = self.paginate_queryset(self.queryset)
-        serializer = self.serializer_class(page, many=True)
-        return self.get_paginated_response(serializer.data)
-
-    def post(self, request, *args, **kwargs):
-        """
-        Метод для регистрации пользователя
-        """
-        serializer = UserCreateSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    @property
-    def paginator(self):
-        """
-        The paginator instance associated with the view, or `None`.
-        """
-        if not hasattr(self, '_paginator'):
-            if self.pagination_class is None:
-                self._paginator = None
-            else:
-                self._paginator = self.pagination_class()
-        return self._paginator
-
-    def paginate_queryset(self, queryset):
-        """
-        Return a single page of results, or `None` if pagination is disabled.
-        """
-        if self.paginator is None:
-            return None
-        return self.paginator.paginate_queryset(queryset,
-                                                self.request,
-                                                view=self)
-
-    def get_paginated_response(self, data):
-        """
-        Return a paginated style `Response` object for the given output data.
-        """
-        assert self.paginator is not None
-        return self.paginator.get_paginated_response(data)
+    http_method_names = ('get', 'post')
 
 
 class APIUserDetail(APIView):
@@ -114,22 +65,25 @@ class APIFollow(APIView):
         Возвращает информацию об авторе, после подписки на него
         авторизированного пользователя
         """
+        """
+        serializer_for_subscribing = self.serializer_class(data=request.data)
+        serializer_for_subscribing.is_valid(raise_exception=True)
+        serializer_for_subscribing.save()
+        не нужен сериализатор, чтобы подписаться на пользователя
+        """
         user_id = self.kwargs.get('user_id')
         if user_id == request.user.id:
             return Response(
                 {'error': 'Нельзя подписаться на себя'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if Follow.objects.filter(
-                user=request.user,
-                author_id=user_id
-        ).exists():
+                status=status.HTTP_400_BAD_REQUEST)
+        try:
+            Follow.objects.create(user=request.user, author_id=user_id)
+        except:
             return Response(
-                {'error': 'Вы уже подписаны на пользователя'},
-                status=status.HTTP_400_BAD_REQUEST
+                {'errors': 'Вы уже подписаны на пользователя!'},
+                status=status.HTTP_400_BAD_REQUEST,
             )
         author = get_object_or_404(User, id=user_id)
-        Follow.objects.create(user=request.user, author=author)
         serializer = FollowSerializer(
                     author, context={'request': request}
                 )

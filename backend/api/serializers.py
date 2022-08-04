@@ -3,10 +3,12 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 from drf_extra_fields.fields import Base64ImageField
 
-from api.models import CountOfIngredient, Favorite, Ingredients, Tag, Recipe
+from api.models import CountOfIngredient, Favorite, Ingredient, Tag, Recipe
 from users.serializers import UserDetailSerializer
 
 
+TAGS_UNIQUE_ERROR = 'Теги не могут повторяться!'
+INGREDIENTS_UNIQUE_ERROR = 'Ингредиенты не могут повторяться!'
 INGREDIENT_DOES_NOT_EXIST = 'Ингредиента не существует!'
 INGREDIENT_MIN_AMOUNT_ERROR = (
     'Количество ингредиента не может быть меньше {min_value}!'
@@ -18,7 +20,7 @@ class IngredientsSerializer(serializers.ModelSerializer):
     """Сериализатор ингредиентов, модели Ingredients """
 
     class Meta:
-        model = Ingredients
+        model = Ingredient
         fields = (
                   'id',
                   'name',
@@ -98,9 +100,8 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request is None or request.user.is_anonymous:
             return False
-        else:
-            user = request.user
-            return Favorite.objects.filter(user=user, recipes=obj).exists()
+        user = request.user
+        return Favorite.objects.filter(user=user, recipes=obj).exists()
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -110,7 +111,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientWriteSerializer(many=True)
     tags = serializers.ListField(
         child=serializers.SlugRelatedField(
-            slug_field='id', queryset=Tag.objects.all(),),
+            slug_field='id', queryset=Tag.objects.all(),
+            ),
     )
     image = Base64ImageField()
 
@@ -120,16 +122,30 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time',
         )
 
+    def validate(self, attrs):
+        if len(attrs['tags']) > len(set(attrs['tags'])):
+            raise serializers.ValidationError(TAGS_UNIQUE_ERROR)
+        id_ingredients = []
+        for ingredient in attrs['ingredients']:
+            id_ingredients.append(ingredient['id'])
+        if len(id_ingredients) > len(set(id_ingredients)):
+            raise serializers.ValidationError(INGREDIENTS_UNIQUE_ERROR)
+        return attrs
+
     def add_ingredients_and_tags(self, instance, validated_data):
         ingredients, tags = (
             validated_data.pop('ingredients'), validated_data.pop('tags')
         )
-        for ingredient in ingredients:
-            count_of_ingredient, _ = CountOfIngredient.objects.get_or_create(
-                ingredient=get_object_or_404(Ingredients, pk=ingredient['id']),
+        new_ingredients = [
+            CountOfIngredient(
+                ingredient=get_object_or_404(Ingredient, pk=ingredient['id']),
                 amount=ingredient['amount'],
             )
-            instance.ingredients.add(count_of_ingredient)
+            for ingredient in ingredients
+        ]
+        objs = CountOfIngredient.objects.bulk_create(new_ingredients)
+        #print(objs) = [<CountOfIngredient: CountOfIngredient object (None)>, <CountOfIngredient: CountOfIngredient object (None)>]
+        # не получается создать объекты с прим. bulk_create
         for tag in tags:
             instance.tags.add(tag)
         return instance
@@ -152,15 +168,14 @@ class FavoriteSerializer(UserDetailSerializer):
     """
     Сериализатор для добавления рецепта в избранное
     """
-
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'image', 'cooking_time')
         validators = [
             UniqueTogetherValidator(
                 queryset=Favorite.objects.all(),
-                fields=('user', 'recipes'),
-                message=('Данный рецепт уже добавлен в избранное!')
+                fields=['user', 'recipes'],
+                message='Данный рецепт уже добавлен в избранное!'
             )
         ]
 
@@ -174,4 +189,3 @@ class RecipeFollowSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'name', 'image', 'cooking_time',
         )
-

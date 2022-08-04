@@ -1,25 +1,19 @@
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from django.urls import include, path, re_path
-from rest_framework.authtoken.models import Token
 from rest_framework.routers import SimpleRouter
 
 from api.views import (
     APIDownloadShoppingCart,
-    APIFavorite,
-    APIIngredients,
-    APIIngredientsDetail,
     APIShoppingCart,
     RecipeViewSet,
     TagViewSet,
+    IngredientViewSet,
 )
 from users.views import (
-    APIUser,
     APIUserDetail,
     FollowListAPIView,
     APIFollow,
-    TokenCreateWithCheckBlockStatusView
+    TokenCreateWithCheckBlockStatusView,
+    UserViewSet,
 )
 
 
@@ -28,15 +22,11 @@ app_name = 'api'
 router_v1 = SimpleRouter()
 
 router_v1.register(r'tags', TagViewSet, basename='tags')
+router_v1.register(r'ingredients', IngredientViewSet, basename='tags')
 router_v1.register(r'recipes', RecipeViewSet, basename='recipes')
+router_v1.register(r'users', UserViewSet, basename='users')
 
 urlpatterns = [
-    path('users/',
-         APIUser.as_view()
-         ),
-    path('users/<int:pk>/',
-         APIUserDetail.as_view()
-         ),
     path(
         'users/subscriptions/',
         FollowListAPIView.as_view(),
@@ -48,11 +38,6 @@ urlpatterns = [
         name='subscribe'
     ),
     path(
-        'recipes/<int:pk>/favorite/',
-        APIFavorite.as_view(),
-        name='favorite'
-    ),
-    path(
         'recipes/<int:pk>/shopping_cart/',
         APIShoppingCart.as_view(),
         name='shopping_cart'
@@ -62,6 +47,12 @@ urlpatterns = [
         APIDownloadShoppingCart.as_view(),
         name='shopping_cart'
     ),
+    path(
+        'users/<int:pk>/',
+        APIUserDetail.as_view(),
+        name='user_detail'
+    ),
+    path('', include(router_v1.urls)),
     path('', include('djoser.urls')),
     path(
         'auth/token/login/',
@@ -70,19 +61,4 @@ urlpatterns = [
     ),
     re_path(r'^auth/',
             include('djoser.urls.authtoken')),
-    path(
-        'ingredients/',
-        APIIngredients.as_view()
-    ),
-    path(
-        'ingredients/<int:pk>/',
-        APIIngredientsDetail.as_view()
-    ),
-    path('', include(router_v1.urls)),
 ]
-
-
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_auth_token(sender, instance=None, created=False, **kwargs):
-    if created:
-        Token.objects.create(user=instance)

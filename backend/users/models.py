@@ -1,7 +1,11 @@
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.models import UserManager
 from django.db import models
 from django.db.models import Q
+from rest_framework.authtoken.models import Token
 
 ADMIN = 'admin'
 USER = 'user'
@@ -50,12 +54,18 @@ class User(AbstractUser):
 
     objects = CustomUserManager()
 
-    def __str__(self):
-        return self.email
-
     class Meta:
         verbose_name = 'пользователь'
         verbose_name_plural = 'пользователи'
+
+    def __str__(self):
+        return self.email
+
+
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_auth_token(sender, instance=None, created=False, **kwargs):
+    if created:
+        Token.objects.create(user=instance)
 
 
 class Follow(models.Model):

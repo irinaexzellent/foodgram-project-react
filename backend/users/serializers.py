@@ -42,7 +42,6 @@ class UserDetailSerializer(UserSerializer):
         подписан на текущего
         """
         request = self.context.get('request')
-        print(request)
         if request is None or request.user.is_anonymous:
             return False
         else:
@@ -72,12 +71,14 @@ class FollowSerializer(UserDetailSerializer):
                 message=('Вы уже подписаны на данного пользователя!')
             )
         ]
-
+    """
     def validate(self, data):
         if data['user'] == data['author']:
             raise serializers.ValidationError(
                 'Вы не можете подписаться на себя!')
         return data
+    не получается вынести логику валидации в сериалайзер
+    """
 
 
 class RecipeFollowSerializer(serializers.ModelSerializer):
@@ -99,7 +100,7 @@ class FollowListSerializer(serializers.ModelSerializer):
     В выдачу добавлены рецепты и общее количество рецептов пользователей
     """
     is_subscribed = serializers.SerializerMethodField(read_only=True)
-    recipes = serializers.SerializerMethodField(read_only=True)
+    recipes = RecipeFollowSerializer(many=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -112,10 +113,6 @@ class FollowListSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         return Follow.objects.filter(user=request.user, author=obj).exists()
-
-    def get_recipes(self, obj):
-        recipes = obj.recipes.all()
-        return RecipeFollowSerializer(recipes, many=True).data
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
