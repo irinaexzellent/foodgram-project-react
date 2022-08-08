@@ -37,31 +37,10 @@ class Tag(models.Model):
         return f'{self.name}'
 
 
-class CountOfIngredient(models.Model):
-    """Модель количества ингредиентов"""
-    ingredient = models.ForeignKey(
-        Ingredient,
-        on_delete=models.CASCADE,
-        related_name='count_in_recipes',
-        verbose_name='Ингредиент',
-    )
-    amount = models.PositiveIntegerField(
-        'Количество', validators=(MinValueValidator(
-            INGREDIENT_MIN_AMOUNT,
-            message=INGREDIENT_MIN_AMOUNT_ERROR.format(
-                min_value=INGREDIENT_MIN_AMOUNT)),
-        )
-    )
-
-    class Meta:
-        verbose_name = 'Количество ингредиента'
-        verbose_name_plural = 'Количество ингредиентов'
-
-
 class Recipe(models.Model):
     """Модель рецептов"""
     ingredients = models.ManyToManyField(
-        'CountOfIngredient',
+        'Ingredient',
         related_name='recipes',
     )
     tags = models.ManyToManyField(
@@ -89,6 +68,32 @@ class Recipe(models.Model):
         ordering = ('-pk',)
 
 
+class CountOfIngredient(models.Model):
+    """Модель количества ингредиентов"""
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        related_name='count_in_recipes',
+        verbose_name='Ингредиент',
+    )
+    amount = models.PositiveIntegerField(
+        'Количество', validators=(MinValueValidator(
+            INGREDIENT_MIN_AMOUNT,
+            message=INGREDIENT_MIN_AMOUNT_ERROR.format(
+                min_value=INGREDIENT_MIN_AMOUNT)),
+        )
+    )
+    recipe = models.ForeignKey(
+        Recipe,
+        related_name='ingredient_amounts',
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        verbose_name = 'Количество ингредиента'
+        verbose_name_plural = 'Количество ингредиентов'
+
+
 class Favorite(models.Model):
     """
     Модель для хранения связей между рецептами и
@@ -97,7 +102,7 @@ class Favorite(models.Model):
     user -- ссылка на объект пользователя, который подписывается,
     recipes -- ссылка на объект рецепта, на который подписываются
     """
-    recipes = models.ForeignKey(
+    recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
         related_name='favorites',

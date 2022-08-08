@@ -96,10 +96,16 @@ AUTH_PASSWORD_VALIDATORS = [
 DJOSER = {
     "LOGIN_FIELD": 'email',
     "SERIALIZERS": {
-        "user_create": "users.serializers.UserSerializer",
-        "current_user": "users.serializers.UserDetailSerializer",
+        'user': 'api.serializers.UserDetailSerializer',
+        'user_create': 'users.serializers.UserCreateSerializer',
+        'current_user': 'users.serializers.UserDetailSerializer',
         'set_password': 'djoser.serializers.SetPasswordSerializer',
         'token': 'djoser.serializers.TokenSerializer',
+    },
+    'HIDE_USERS': False,
+    'PERMISSIONS': {
+        'user': ['rest_framework.permissions.IsAuthenticated'],
+        'user_list': ['rest_framework.permissions.IsAuthenticatedOrReadOnly'],
     },
 }
 

@@ -1,23 +1,29 @@
-from django.urls import include, path
-from rest_framework.routers import DefaultRouter
+from django.urls import include, path, re_path
+from rest_framework.routers import SimpleRouter
 
-from .views import FollowListView, FollowViewSet
+from users.views import (
+    TokenCreateWithCheckBlockStatusView,
+    UserViewSet,
+)
 
 app_name = 'users'
 
-router = DefaultRouter()
+router_v1 = SimpleRouter()
+
+router_v1.register(r'users', UserViewSet, basename='users')
+
+subscriptions = UserViewSet.as_view({'get': 'subscriptions', })
 
 
 urlpatterns = [
+    path('users/subscriptions/', subscriptions, name='subscriptions'),
+    path('', include(router_v1.urls)),
+    path('', include('djoser.urls')),
     path(
-        'users/subscriptions/',
-        FollowListView.as_view(),
-        name='subscriptions'
+        'auth/token/login/',
+        TokenCreateWithCheckBlockStatusView.as_view(),
+        name='login'
     ),
-    path(
-        'users/<int:user_id>/subscribe/',
-        FollowViewSet.as_view(),
-        name='subscribe'
-    ),
-    path('', include(router.urls)),
+    re_path(r'^auth/',
+            include('djoser.urls.authtoken')),
 ]
