@@ -115,7 +115,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         if request is None or request.user.is_anonymous:
             return False
         user = request.user
-        return Favorite.objects.filter(user=user, recipes=obj).exists()
+        return Favorite.objects.filter(user=user, recipe=obj).exists()
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -150,7 +150,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients, tags = (
             validated_data.pop('ingredients'), validated_data.pop('tags')
         )
-        print(ingredients)
         new_ingredients = [
             CountOfIngredient(
                 ingredient=get_object_or_404(Ingredient, pk=ingredient['id']),
@@ -160,10 +159,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
             for ingredient in ingredients
         ]
         CountOfIngredient.objects.bulk_create(new_ingredients)
-        for ingredient in ingredients:
-            ingredient_object = get_object_or_404(
-                Ingredient, id=ingredient.get('id'))
-            instance.ingredients.add(ingredient_object)
         for tag in tags:
             instance.tags.add(tag)
         return instance
@@ -201,21 +196,21 @@ class FavoriteSerializer(UserDetailSerializer):
     Сериализатор для добавления рецепта в избранное
     """
     user = serializers.ReadOnlyField(source='user.id')
-    recipes = serializers.ReadOnlyField(source='recipe.id')
+    recipe = serializers.ReadOnlyField(source='recipe.id')
 
     class Meta:
         model = Favorite
-        fields = ('user', 'recipes')
+        fields = ('user', 'recipe')
 
     def create(self, validated_data):
         user = self.context['request'].user
         recipe_id = self.context.get('request').parser_context['kwargs']['pk']
         recipe = get_object_or_404(Recipe, pk=recipe_id)
-        if Favorite.objects.filter(user=user, recipes=recipe).exists():
+        if Favorite.objects.filter(user=user, recipe=recipe).exists():
             if self.context['request'].method in ['POST']:
                 raise serializers.ValidationError(
                         'Данный рецепт уже добавлен в избранное!')
-        return Favorite.objects.create(user=user, recipes=recipe)
+        return Favorite.objects.create(user=user, recipe=recipe)
 
 
 class ShoppingCartSerializer(UserDetailSerializer):

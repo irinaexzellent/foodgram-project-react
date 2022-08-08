@@ -100,7 +100,7 @@ class Favorite(models.Model):
     авторми
     Ключевые аргументы:
     user -- ссылка на объект пользователя, который подписывается,
-    recipes -- ссылка на объект рецепта, на который подписываются
+    recipe -- ссылка на объект рецепта, на который подписываются
     """
     recipe = models.ForeignKey(
         Recipe,
@@ -120,7 +120,7 @@ class Favorite(models.Model):
         verbose_name_plural = 'Избранное'
         constraints = (
             models.UniqueConstraint(
-                fields=('recipes', 'user',),
+                fields=('recipe', 'user',),
                 name='unique_recipes_user',
             ),
         )

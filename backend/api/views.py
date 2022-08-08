@@ -9,7 +9,6 @@ from rest_framework.permissions import SAFE_METHODS
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-
 from api.models import (
     Favorite,
     Ingredient,
@@ -19,15 +18,14 @@ from api.models import (
 )
 from api.permissions import IsOwnerOrReadOnly
 from api.serializers import (
+    IngredientsSerializer,
     FavoriteSerializer,
     RecipeReadSerializer,
-    RecipeWriteSerializer,
-    IngredientsSerializer,
-    TagSerializer,
     RecipeFollowSerializer,
+    RecipeWriteSerializer,
+    TagSerializer,
     ShoppingCartSerializer
 )
-
 
 User = get_user_model()
 
@@ -129,7 +127,7 @@ class RecipeViewSet(ModelViewSet):
     def download_shopping_cart(self, request, pk=None):
         annotated_result = Ingredient.objects.filter(
             count_in_recipes__recipe__shopping_carts__user=request.user).annotate(
-            quantity=Sum(F'count_in_recipes__amount')
+                quantity=Sum(F'{"count_in_recipes__amount"}')
         )
 
         shopping_cart = '\n'.join([

@@ -29,9 +29,9 @@ class UserDetailSerializer(UserSerializer):
     class Meta:
         model = User
         fields = (
+            'email',
             'id',
             'username',
-            'email',
             'first_name',
             'last_name',
             'is_subscribed',
@@ -142,12 +142,11 @@ class FollowPostSerializer(UserDetailSerializer):
         fields = ('user', 'author')
 
     def create(self, validated_data):
-        user =  self.context['request'].user
-        author_id = self.context.get('request').parser_context['kwargs']['pk']
+        user = self.context['request'].user
+        author_id = self.context.get('request').parser_context['kwargs']['id']
         author = get_object_or_404(User, id=author_id)
         if Follow.objects.filter(user=user, author=author).exists():
             if self.context['request'].method in ['POST']:
                 raise serializers.ValidationError(
                     SUBSCRIBE_ON_AUTHOR_EXIST)
         return Follow.objects.create(user=user, author=author)
-

@@ -1,21 +1,19 @@
-from djoser.views import TokenCreateView
-from rest_framework import status, viewsets
+from djoser.views import TokenCreateView, UserViewSet
+from rest_framework import status
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import ListSerializer
 
-
 from users.models import Follow, User
 from users.serializers import (
     FollowSerializer,
-    FollowListSerializer,
     FollowPostSerializer,
+    FollowListSerializer,
     UserCreateSerializer,
     )
-
 
 USER_BLOCKED = 'Данный аккаунт временно заблокирован!'
 
@@ -30,7 +28,7 @@ class TokenCreateWithCheckBlockStatusView(TokenCreateView):
         return super()._action(serializer)
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(UserViewSet):
     """
     View-класс для обработки эндпоинта /users/
     """
@@ -38,7 +36,7 @@ class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserCreateSerializer
 
     def subscribe_to_author(self, request):
-        user_id = self.kwargs.get('pk')
+        user_id = self.kwargs.get('id')
         serializer = FollowPostSerializer(
             context={'request': request},
             data=request.data)
@@ -55,7 +53,7 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
     def unsubscribe_from_author(self, request):
-        user_id = self.kwargs.get('pk')
+        user_id = self.kwargs.get('id')
         subscribe = Follow.objects.filter(
                 user=request.user,
                 author_id=user_id)
