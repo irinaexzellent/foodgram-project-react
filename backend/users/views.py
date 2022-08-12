@@ -1,18 +1,16 @@
 from djoser.views import TokenCreateView, UserViewSet
 from rest_framework import status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes
 from rest_framework.generics import get_object_or_404
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.serializers import ListSerializer
 
+from foodgram.pagination import LimitPageNumberPagination
 from users.models import Follow, User
 from users.serializers import (
     FollowSerializer,
     FollowPostSerializer,
     FollowListSerializer,
-    UserCreateSerializer,
     )
 
 USER_BLOCKED = 'Данный аккаунт временно заблокирован!'
@@ -28,12 +26,12 @@ class TokenCreateWithCheckBlockStatusView(TokenCreateView):
         return super()._action(serializer)
 
 
-class UserViewSet(UserViewSet):
+class UserSubscribeViewSet(UserViewSet):
     """
     View-класс для обработки эндпоинта /users/
     """
-    queryset = User.objects.all()
-    serializer_class = UserCreateSerializer
+    pagination_class = LimitPageNumberPagination
+    lookup_url_kwarg = 'id'
 
     def subscribe_to_author(self, request):
         user_id = self.kwargs.get('id')
@@ -72,24 +70,22 @@ class UserViewSet(UserViewSet):
             return self.subscribe_to_author(request)
         return self.unsubscribe_from_author(request)
 
+    def get_subscribtion_serializer(self, *args, **kwargs):
+        kwargs.setdefault('context', self.get_serializer_context())
+        return FollowListSerializer(*args, **kwargs)
+
     @action(
-        detail=True,
+        detail=False,
         methods=['GET'],
-        permission_classes=[IsAuthenticated],
         url_path='subscriptions'
     )
+    @permission_classes([IsAuthenticated])
     def subscriptions(self, request):
         user = request.user
         followed_list = User.objects.filter(following__user=user)
-        paginator = PageNumberPagination()
-        authors = paginator.paginate_queryset(
-            followed_list,
-            request=request
-        )
-        serializer = ListSerializer(
-            child=FollowListSerializer(),
-            context=self.get_serializer_context()
-        )
-        return paginator.get_paginated_response(
-            serializer.to_representation(authors)
-        )
+        page = self.paginate_queryset(followed_list)
+        if page is not None:
+            serializer = self.get_subscribtion_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        serializer = self.get_subscribtion_serializer(followed_list, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

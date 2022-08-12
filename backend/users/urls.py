@@ -3,16 +3,16 @@ from rest_framework.routers import SimpleRouter
 
 from users.views import (
     TokenCreateWithCheckBlockStatusView,
-    UserViewSet,
+    UserSubscribeViewSet,
 )
 
 app_name = 'users'
 
 router_v1 = SimpleRouter()
 
-router_v1.register(r'users', UserViewSet, basename='users')
+router_v1.register(r'users', UserSubscribeViewSet, basename='users')
 
-subscriptions = UserViewSet.as_view({'get': 'subscriptions', })
+subscriptions = UserSubscribeViewSet.as_view({'get': 'subscriptions', })
 
 
 urlpatterns = [

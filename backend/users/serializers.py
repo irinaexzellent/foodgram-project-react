@@ -112,7 +112,7 @@ class FollowListSerializer(serializers.ModelSerializer):
     В выдачу добавлены рецепты и общее количество рецептов пользователей
     """
     is_subscribed = serializers.SerializerMethodField(read_only=True)
-    recipes = RecipeFollowSerializer(many=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -125,6 +125,15 @@ class FollowListSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         return Follow.objects.filter(user=request.user, author=obj).exists()
+
+    def get_recipes(self, data):
+        recipes_limit = self.context.get('request').GET.get('recipes_limit')
+        recipes = (
+            data.recipes.all()[:int(recipes_limit)]
+            if recipes_limit else data.recipes
+        )
+        serializer = serializers.ListSerializer(child=RecipeFollowSerializer())
+        return serializer.to_representation(recipes)
 
     def get_recipes_count(self, obj):
         return obj.recipes.count()
