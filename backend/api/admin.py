@@ -1,9 +1,24 @@
 from django.contrib import admin
+from import_export import resources
+from import_export.admin import ImportMixin
 
 from .models import Ingredient, Recipe, Tag
 
 
-class IngredientAdmin(admin.ModelAdmin):
+class IngredientImportMixin(ImportMixin):
+    """
+    Import mixin
+    """
+    from_encoding = 'utf-8'
+
+
+class IngredientResource(resources.ModelResource):
+
+    class Meta:
+        model = Ingredient
+
+
+class IngredientAdmin(IngredientImportMixin, admin.ModelAdmin):
 
     list_display = (
         'name',

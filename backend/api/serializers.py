@@ -97,6 +97,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     Сериализатор для чтения рецептов
     """
     is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
     author = UserDetailSerializer()
     ingredients = RecipeIngredientReadSerializer(
@@ -107,7 +108,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = (
             'id', 'name', 'tags', 'author', 'ingredients', 'is_favorited',
-            'image', 'text', 'cooking_time',
+            'is_in_shopping_cart', 'image', 'text', 'cooking_time',
         )
 
     def get_is_favorited(self, obj):
@@ -116,6 +117,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
             return False
         user = request.user
         return Favorite.objects.filter(user=user, recipe=obj).exists()
+
+    def get_is_in_shopping_cart(self, obj):
+        request = self.context.get('request')
+        if request is None or request.user.is_anonymous:
+            return False
+        user = request.user
+        return ShoppingCart.objects.filter(user=user, recipe=obj).exists()
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
@@ -170,13 +178,20 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         saved = {}
         saved['ingredients'] = validated_data.pop('ingredients')
         saved['tags'] = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = Recipe.objects.create(
+            author=self.context.get('request').user,
+            **validated_data
+            )
         return self.add_ingredients_and_tags(recipe, saved)
 
     def update(self, instance, validated_data):
         instance.ingredients.clear()
         instance.tags.clear()
-        instance = self.add_ingredients_and_tags(instance, validated_data)
+        instance = self.add_ingredients_and_tags(
+            instance,
+            validated_data,
+            author=self.context.get('request').user
+            )
         return super().update(instance, validated_data)
 
 
