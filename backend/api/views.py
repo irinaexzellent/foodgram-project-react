@@ -100,8 +100,7 @@ class RecipeViewSet(ModelViewSet):
     @action(
         detail=True,
         methods=['post', 'delete'],
-        permission_classes=(IsAuthenticated,)
-        )
+        permission_classes=(IsAuthenticated,))
     def favorite(self, request, *args, **kwargs):
         if request.method == 'POST':
             return self.add_to(
@@ -135,8 +134,7 @@ class RecipeViewSet(ModelViewSet):
     @action(
         detail=False,
         methods=['get'],
-        permission_classes=[permissions.IsAuthenticated]
-        )
+        permission_classes=[permissions.IsAuthenticated])
     def download_shopping_cart(self, request, pk=None):
         annotated_result = Ingredient.objects.filter(
             count_in_recipes__recipe__shopping_carts__user=request.user).annotate(

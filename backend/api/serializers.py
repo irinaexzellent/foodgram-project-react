@@ -30,8 +30,7 @@ class IngredientsSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'name',
-            'measurement_unit',
-            )
+            'measurement_unit',)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -43,8 +42,7 @@ class TagSerializer(serializers.ModelSerializer):
             'id',
             'name',
             'color',
-            'slug',
-            )
+            'slug',)
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
@@ -140,8 +138,12 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = (
-            'ingredients', 'tags', 'image', 'name', 'text', 'cooking_time',
-        )
+            'ingredients',
+            'tags',
+            'image', 
+            'name', 
+            'text', 
+            'cooking_time',)
 
     def validate(self, attrs):
         if len(attrs['tags']) > len(set(attrs['tags'])):
@@ -179,8 +181,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         saved['tags'] = validated_data.pop('tags')
         recipe = Recipe.objects.create(
             author=self.context.get('request').user,
-            **validated_data
-            )
+            **validated_data)
         return self.add_ingredients_and_tags(recipe, saved)
 
     def update(self, instance, validated_data):
@@ -189,8 +190,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         instance = self.add_ingredients_and_tags(
             instance,
             validated_data,
-            author=self.context.get('request').user
-            )
+            author=self.context.get('request').user)
         return super().update(instance, validated_data)
 
 
@@ -223,7 +223,7 @@ class FavoriteSerializer(UserDetailSerializer):
         if Favorite.objects.filter(user=user, recipe=recipe).exists():
             if self.context['request'].method in ['POST']:
                 raise serializers.ValidationError(
-                        'Данный рецепт уже добавлен в избранное!')
+                    'Данный рецепт уже добавлен в избранное!')
         return Favorite.objects.create(user=user, recipe=recipe)
 
     def to_representation(self, instance):
