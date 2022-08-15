@@ -16,7 +16,7 @@ services:
       - ./.env
   backend:
     build:
-      context: irinaexcellnet/foodgram_backend:latest
+      context: irinaexcellent/foodgram_backend:latest
       restart: always
     volumes:
       - static_value:/code/static/
@@ -27,7 +27,7 @@ services:
       - ./.env
   frontend:
     build:
-      context: irinaexcellnet/foodgram_frontend:latest
+      context: irinaexcellent/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
