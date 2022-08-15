@@ -2,7 +2,13 @@
 
 # О ПРОЕКТЕ
 
-Cайт Foodgram, «Продуктовый помощник». На этом сервисе пользователи могут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд.
+Cайт Foodgram, «Продуктовый помощник». На этом сервисе пользователи могут публиковать рецепты, подписываться на публикации других пользователей, добавлять понравившиеся рецепты в список «Избранное», скачивать сводный список продуктов, необходимых для приготовления одного или нескольких выбранных блюд. 
+
+Проект доступен по адресу:
+
+```
+http://158.160.0.245
+```
 
 # ОПИСАНИЕ КОМАНД ДЛЯ ЗАПУСКА ПРИЛОЖЕНИЯ
 
@@ -64,21 +70,19 @@ sudo docker container ls
 ```
 Статус контейнеров будет в состоянии Up:
 ```
-CONTAINER ID   IMAGE                             COMMAND                  CREATED          STATUS          PORTS                               NAMES
-0e71c6c6234c   nginx:1.21.3-alpine               "/docker-entrypoint.…"   39 minutes ago   Up 39 minutes   0.0.0.0:80->80/tcp, :::80->80/tcp   irina-nginx-1
-616ca90cb80a   irinaexcellent/api_yamdb:latest   "gunicorn api_yamdb.…"   39 minutes ago   Up 39 minutes                                       irina-web-1
-5e0bbb3354ee   postgres:13.0-alpine              "docker-entrypoint.s…"   39 minutes ago   Up 39 minutes   5432/tcp                            irina-db-1
+CONTAINER ID   IMAGE                                    COMMAND                  CREATED             STATUS             PORTS
+  NAMES
+314c96e0700d   nginx:1.19.3                             "/docker-entrypoint.…"   About an hour ago   Up About an hour   0.0.0.0:80->80/tcp, :::80->80/tcp
+  irina-nginx-1
+a9292559bac8   irinaexcellent/foodgram_backend:latest   "/bin/sh -c 'gunicor…"   About an hour ago   Up About an hour
+  irina-backend-1
+35c7760850ea   postgres:13.0-alpine                     "docker-entrypoint.s…"   2 hours ago         Up About an hour   0.0.0.0:5432->5432/tcp, :::5432->5432/tcp 
+  irina-db-1
 ```
 Выполнить миграции в контейнере web:
 ```
 sudo docker compose exec backend python manage.py migrate
 ```
-
-Наполнить базу данных начальными тестовыми данными:
-```
-sudo docker compose exec backend python manage.py > dump.json
-```
-
 Для создания нового суперпользователя можно выполнить команду:
 ```
 sudo docker compose exec backend python manage.py createsuperuser
@@ -90,17 +94,13 @@ Username:
 Password:
 Password (again):
 ```
-Cписок и подробное описание доступных запросов к приложению можно посмотреть:
-
-* http://IP/redoc/
-
 Для остановки и удаления контейнеров и образов на сервере:
 ```
 sudo docker stop $(sudo docker ps -a -q) && sudo docker rm $(sudo docker ps -a -q) && sudo docker rmi $(sudo docker images -q)
 ```
 Для удаления volume базы данных:
 ```
-sudo docker volume rm yamdb_final_postgres_data
+sudo docker volume rm логин_сервера_postgres_data
 ```
 
 ## Автор
