@@ -15,9 +15,8 @@ services:
     env_file:
       - ./.env
   backend:
-    build:
-      image: irinaexcellent/foodgram_backend:latest
-      restart: always
+    image: irinaexcellent/foodgram_backend:latest
+    restart: always
     volumes:
       - static_value:/code/static/
       - media_value:/code/media/
@@ -26,8 +25,7 @@ services:
     env_file:
       - ./.env
   frontend:
-    build:
-      image: irinaexcellent/foodgram_frontend:latest
+    image: irinaexcellent/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
