@@ -131,8 +131,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientWriteSerializer(many=True)
     tags = serializers.ListField(
         child=serializers.SlugRelatedField(
-            slug_field='id', queryset=Tag.objects.all(),),
-            )
+            slug_field='id', queryset=Tag.objects.all(),),)
     image = Base64ImageField()
 
     class Meta:
@@ -140,9 +139,9 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         fields = (
             'ingredients',
             'tags',
-            'image', 
-            'name', 
-            'text', 
+            'image',
+            'name',
+            'text',
             'cooking_time',)
 
     def validate(self, attrs):
