@@ -16,8 +16,8 @@ services:
       - ./.env
   backend:
     build:
-      context: ../backend
-      dockerfile: Dockerfile
+      context: irinaexcellnet/foodgram_backend:latest
+      restart: always
     volumes:
       - static_value:/code/static/
       - media_value:/code/media/
@@ -27,8 +27,7 @@ services:
       - ./.env
   frontend:
     build:
-      context: ../frontend
-      dockerfile: Dockerfile
+      context: irinaexcellnet/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
     depends_on:
@@ -44,6 +43,7 @@ services:
       - ../docs/:/usr/share/nginx/html/api/docs/
       - static_value:/static/
       - media_value:/media/
+    restart: always
     depends_on:
       - frontend
     
