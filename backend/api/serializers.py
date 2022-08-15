@@ -28,10 +28,10 @@ class IngredientsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = (
-                  'id',
-                  'name',
-                  'measurement_unit',
-                  )
+            'id',
+            'name',
+            'measurement_unit',
+            )
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -40,11 +40,11 @@ class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
         fields = (
-                  'id',
-                  'name',
-                  'color',
-                  'slug',
-                  )
+            'id',
+            'name',
+            'color',
+            'slug',
+            )
 
 
 class RecipeIngredientWriteSerializer(serializers.ModelSerializer):
@@ -133,9 +133,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     ingredients = RecipeIngredientWriteSerializer(many=True)
     tags = serializers.ListField(
         child=serializers.SlugRelatedField(
-            slug_field='id', queryset=Tag.objects.all(),
-            ),
-    )
+            slug_field='id', queryset=Tag.objects.all(),),
+            )
     image = Base64ImageField()
 
     class Meta:

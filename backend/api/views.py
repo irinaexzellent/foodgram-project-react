@@ -23,7 +23,6 @@ from api.serializers import (
     IngredientsSerializer,
     FavoriteSerializer,
     RecipeReadSerializer,
-    RecipeFollowSerializer,
     RecipeWriteSerializer,
     TagSerializer,
     ShoppingCartSerializer
@@ -80,8 +79,7 @@ class RecipeViewSet(ModelViewSet):
     def add_to(self, request, serializer):
         serializer = serializer(
             context={'request': request},
-            data=request.data
-            )
+            data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -89,8 +87,8 @@ class RecipeViewSet(ModelViewSet):
     def delete_from(self, request, type_object):
         recipe_id = self.kwargs.get('pk')
         favorite = type_object.objects.filter(
-                user=request.user,
-                recipe_id=recipe_id)
+            user=request.user,
+            recipe_id=recipe_id)
         if favorite:
             favorite.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -108,21 +106,18 @@ class RecipeViewSet(ModelViewSet):
         if request.method == 'POST':
             return self.add_to(
                 request,
-                serializer=FavoriteSerializer,
-                )
+                serializer=FavoriteSerializer,)
         return self.delete_from(request, type_object=Favorite)
 
     @action(
         detail=True,
         methods=['post', 'get'],
         permission_classes=(IsAuthenticated,),
-        pagination_class=None
-        )
+        pagination_class=None)
     def shopping_cart(self, request, pk):
         data = {'user': request.user.id, 'recipe': pk}
         serializer = ShoppingCartSerializer(
-            data=data, context={'request': request}
-        )
+            data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -145,8 +140,7 @@ class RecipeViewSet(ModelViewSet):
     def download_shopping_cart(self, request, pk=None):
         annotated_result = Ingredient.objects.filter(
             count_in_recipes__recipe__shopping_carts__user=request.user).annotate(
-                quantity=Sum(F'{"count_in_recipes__amount"}')
-        )
+                quantity=Sum(F'{"count_in_recipes__amount"}'))
 
         shopping_cart = '\n'.join([
             f'{ingredient.name} - {ingredient.quantity} '

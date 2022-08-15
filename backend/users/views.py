@@ -10,8 +10,7 @@ from users.models import Follow, User
 from users.serializers import (
     FollowSerializer,
     FollowPostSerializer,
-    FollowListSerializer,
-    )
+    FollowListSerializer,)
 
 USER_BLOCKED = 'Данный аккаунт временно заблокирован!'
 
@@ -43,18 +42,16 @@ class UserSubscribeViewSet(UserViewSet):
         author = get_object_or_404(User, id=user_id)
         serializer_data = FollowSerializer(
             author,
-            context={'request': request},
-            )
+            context={'request': request},)
         return Response(
             serializer_data.data,
-            status=status.HTTP_201_CREATED
-            )
+            status=status.HTTP_201_CREATED)
 
     def unsubscribe_from_author(self, request):
         user_id = self.kwargs.get('id')
         subscribe = Follow.objects.filter(
-                user=request.user,
-                author_id=user_id)
+            user=request.user,
+            author_id=user_id)
         if subscribe:
             subscribe.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
