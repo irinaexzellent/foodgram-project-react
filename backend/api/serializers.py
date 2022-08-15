@@ -227,24 +227,37 @@ class FavoriteSerializer(UserDetailSerializer):
                         'Данный рецепт уже добавлен в избранное!')
         return Favorite.objects.create(user=user, recipe=recipe)
 
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return RecipeFollowSerializer(
+            instance.recipe, context=context).data
 
-class ShoppingCartSerializer(UserDetailSerializer):
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
     """
     Сериализатор для добавления рецепта в избранное
     """
-    user = serializers.ReadOnlyField(source='user.id')
-    recipe = serializers.ReadOnlyField(source='recipe.id')
 
     class Meta:
         model = ShoppingCart
         fields = ('user', 'recipe')
 
-    def create(self, validated_data):
-        user = self.context['request'].user
-        recipe_id = self.context.get('request').parser_context['kwargs']['pk']
-        recipe = get_object_or_404(Recipe, pk=recipe_id)
-        if ShoppingCart.objects.filter(user=user, recipe=recipe).exists():
-            if self.context['request'].method in ['POST']:
-                raise serializers.ValidationError(
-                        'Данный рецепт уже добавлен в список покупок!')
-        return ShoppingCart.objects.create(user=user, recipe=recipe)
+    def validate(self, data):
+        request = self.context.get('request')
+        if not request or request.user.is_anonymous:
+            return False
+        recipe = data['recipe']
+        if ShoppingCart.objects.filter(
+            user=request.user, recipe=recipe
+        ).exists():
+            raise serializers.ValidationError({
+                'status': 'Рецепт уже есть в списке покупок!'
+            })
+        return data
+
+    def to_representation(self, instance):
+        request = self.context.get('request')
+        context = {'request': request}
+        return RecipeFollowSerializer(
+            instance.recipe, context=context).data

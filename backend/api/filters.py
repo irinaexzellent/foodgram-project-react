@@ -38,7 +38,7 @@ class RecipeFilter(FilterSet):
     tags = AllValuesMultipleFilter(field_name='tags__slug')
     author = CharFilter(lookup_expr='exact')
     is_in_shopping_cart = BooleanFilter(
-        method='get_is_in_shopping_cart'
+        method='filter_is_in_shopping_cart'
     )
     is_favorited = BooleanFilter(method='get_is_favorited')
 
@@ -50,25 +50,11 @@ class RecipeFilter(FilterSet):
             pk__in=(favorite.recipe.pk for favorite in favorites)
         )
 
-    #def get_is_in_shopping_cart(self, queryset, name, value):
-    #    if not value:
-    #        return queryset
-    #    try:
-    #        recipes = (
-    #            self.request.user.shopping_carts.recipe.all()
-    #        )
-    #    except ShoppingCart.DoesNotExist:
-    #        return queryset
-    #    return queryset.filter(
-    #        pk__in=(recipe.pk for recipe in recipes)
-    #    )
-    def get_is_in_shopping_cart(self, queryset, name, data):
-        if data and not self.request.user.is_anonymous:
-            return queryset.filter(
-                shopping_cart_recipe__user=self.request.user
-            )
-        return queryset
+    def filter_is_in_shopping_cart(self, queryset, name, value):
+        if value:
+            return queryset.filter(shopping_carts__user=self.request.user)
+        return queryset.all()
 
     class Meta:
         model = Recipe
-        fields = ['author', ]
+        fields = ['author', 'is_in_shopping_cart']

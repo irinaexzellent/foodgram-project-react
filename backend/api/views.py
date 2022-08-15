@@ -64,10 +64,10 @@ class RecipeViewSet(ModelViewSet):
     ViewSet для обработки эндпоинта 'api/recipes/'
     """
     queryset = Recipe.objects.all()
-    filter_backends = (DjangoFilterBackend,)
-    filterset_class = RecipeFilter
-    pagination_class = LimitPageNumberPagination
     permission_classes = (IsOwnerOrReadOnly,)
+    filterset_class = RecipeFilter
+    filter_backends = (DjangoFilterBackend,)
+    pagination_class = LimitPageNumberPagination
 
     def get_serializer_class(self):
         """
@@ -77,19 +77,14 @@ class RecipeViewSet(ModelViewSet):
             return RecipeReadSerializer
         return RecipeWriteSerializer
 
-    def add_to(self, request, serializer, serializer_for_read):
+    def add_to(self, request, serializer):
         serializer = serializer(
             context={'request': request},
             data=request.data
             )
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        recipe = get_object_or_404(Recipe, id=self.kwargs.get('pk'))
-        serializer_data = serializer_for_read(recipe)
-        return Response(
-            serializer_data.data,
-            status=status.HTTP_201_CREATED
-            )
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def delete_from(self, request, type_object):
         recipe_id = self.kwargs.get('pk')
@@ -114,23 +109,33 @@ class RecipeViewSet(ModelViewSet):
             return self.add_to(
                 request,
                 serializer=FavoriteSerializer,
-                serializer_for_read=RecipeFollowSerializer
                 )
         return self.delete_from(request, type_object=Favorite)
 
     @action(
         detail=True,
-        methods=['post', 'delete'],
-        permission_classes=(IsAuthenticated,)
+        methods=['post', 'get'],
+        permission_classes=(IsAuthenticated,),
+        pagination_class=None
         )
-    def shopping_cart(self, request, *args, **kwargs):
-        if request.method == 'POST':
-            return self.add_to(
-                request,
-                serializer=ShoppingCartSerializer,
-                serializer_for_read=RecipeFollowSerializer
-                )
-        return self.delete_from(request, type_object=ShoppingCart)
+    def shopping_cart(self, request, pk):
+        data = {'user': request.user.id, 'recipe': pk}
+        serializer = ShoppingCartSerializer(
+            data=data, context={'request': request}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @shopping_cart.mapping.delete
+    def delete_shopping_cart(self, request, pk):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        shopping_cart = get_object_or_404(
+            ShoppingCart, user=user, recipe=recipe
+        )
+        shopping_cart.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(
         detail=False,
