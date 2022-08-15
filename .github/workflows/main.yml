@@ -65,7 +65,7 @@ jobs:
           stack_file_name: docker-compose.yml
           script: |
             sudo docker pull ${{ secrets.MY_USERNAME_DOCKER }}/foodgram_backend
-            sudo docker pull ${{ secrets.MY_PASSWORD_DOCKER }}/foodgram_frontend
+            sudo docker pull ${{ secrets.MY_USERNAME_DOCKER }}/foodgram_frontend
             sudo docker compose stop
             sudo docker compose rm backend
             sudo docker compose rm frontend
