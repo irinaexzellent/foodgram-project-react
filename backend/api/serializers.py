@@ -185,7 +185,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         context = self.context['request']
-        ingredients = validated_data.pop('recipe_ingredients')
         tags_set = context.data['tags']
         recipe = instance
         instance.name = validated_data.get('name', instance.name)
@@ -196,8 +195,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         instance.save()
         instance.tags.set(tags_set)
         CountOfIngredient.objects.filter(recipe=instance).delete()
-        ingredients_req = context.data['ingredients']
-        for ingredient in ingredients_req:
+        ingredients = context.data['ingredients']
+        for ingredient in ingredients:
             ingredient_model = Ingredient.objects.get(id=ingredient['id'])
             CountOfIngredient.objects.create(
                 recipe=recipe,
