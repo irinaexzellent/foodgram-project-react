@@ -189,7 +189,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         instance = self.add_ingredients_and_tags(
             instance, validated_data)
         return instance
-        
+
 
 class RecipeFollowSerializer(serializers.ModelSerializer):
     """
